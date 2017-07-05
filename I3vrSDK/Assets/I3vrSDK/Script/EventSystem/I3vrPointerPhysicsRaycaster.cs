@@ -2,7 +2,7 @@
  * Copyright (C) 2017 3ivr. All rights reserved.
  *
  * Author: Lucas(Wu Pengcheng)
- * Date  : 2017/06/19 08:08
+ * Date  : 2017/07/04 17:05
  */
 
 using System.Collections.Generic;
@@ -69,12 +69,7 @@ public class I3vrPointerPhysicsRaycaster : I3vrBasePointerRaycaster
 
     public override void Raycast(PointerEventData eventData, List<RaycastResult> resultAppendList)
     {
-        if (eventCamera == null)
-        {
-            return;
-        }
-
-        if (!IsPointerAvailable())
+        if (!IsPointerAvailable() || eventCamera == null)
         {
             return;
         }
@@ -112,7 +107,7 @@ public class I3vrPointerPhysicsRaycaster : I3vrBasePointerRaycaster
                 distance = hits[b].distance,
                 worldPosition = hitPosition,
                 worldNormal = hits[b].normal,
-                screenPosition = eventData.position,
+                screenPosition = eventCamera.WorldToScreenPoint(hitPosition),
                 index = resultAppendList.Count,
                 sortingLayer = 0,
                 sortingOrder = 0

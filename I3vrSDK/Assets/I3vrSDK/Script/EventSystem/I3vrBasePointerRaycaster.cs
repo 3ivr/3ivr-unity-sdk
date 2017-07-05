@@ -2,7 +2,7 @@
  * Copyright (C) 2017 3ivr. All rights reserved.
  *
  * Author: Lucas(Wu Pengcheng)
- * Date  : 2017/06/19 08:08
+ * Date  : 2017/07/04 17:05
  */
 
 using UnityEngine;
@@ -43,7 +43,7 @@ public abstract class I3vrBasePointerRaycaster : BaseRaycaster
                 return 0.0f;
             }
 
-            return I3vrPointerManager.Pointer.GetMaxPointerDistance();
+            return I3vrPointerManager.Pointer.MaxPointerDistance;
         }
     }
 
@@ -83,7 +83,7 @@ public abstract class I3vrBasePointerRaycaster : BaseRaycaster
             return false;
         }
 
-        if (I3vrPointerManager.Pointer.GetPointerTransform() == null)
+        if (I3vrPointerManager.Pointer.PointerTransform == null)
         {
             return false;
         }
@@ -107,7 +107,7 @@ public abstract class I3vrBasePointerRaycaster : BaseRaycaster
             return lastRay;
         }
 
-        Transform pointerTransform = I3vrPointerManager.Pointer.GetPointerTransform();
+        Transform pointerTransform = I3vrPointerManager.Pointer.PointerTransform;
 
         switch (raycastMode)
         {

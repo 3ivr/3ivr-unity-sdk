@@ -29,27 +29,25 @@ namespace i3vr
             Right,
         }
 
-        const string className = "com.unity3d.player.UnityPlayer";
-        const string fieldName = "currentActivity";
-        const string apiClassName = "cn.i3vr.vr.sdk.controller.I3vrController";
+        private const string className = "com.unity3d.player.UnityPlayer";
+        private const string fieldName = "currentActivity";
+        private const string apiClassName = "cn.i3vr.vr.sdk.controller.I3vrController";
 
-        string deviceName = "i3vr";
+        private static AndroidJavaClass javaUnityPlayer;
+        private static AndroidJavaObject currentActivity;
+        private static AndroidJavaObject androidPlugin;
 
-        AndroidJavaClass javaUnityPlayer;
-        AndroidJavaObject currentActivity;
-        AndroidJavaObject androidPlugin;
-
-        float[] rawOri;
-        float[] rawAccel;
-        float[] rawGyro;
-        float[] touchPos;
+        private float[] rawOri;
+        private float[] rawAccel;
+        private float[] rawGyro;
+        private float[] touchPos;
 
         private Quaternion rawOriQua = Quaternion.identity;
         private Vector3 rawAccelV3 = Vector3.zero;
         private Vector3 rawGyrolV3 = Vector3.zero;
         private Vector2 touchPosV2 = Vector2.zero;
 
-        MutablePose3D pose3d = new MutablePose3D();
+        private MutablePose3D pose3d = new MutablePose3D();
         private bool initialRecenterDone = false;
         private Quaternion lastRawOrientation = Quaternion.identity;
         private Vector3 YawRotation = Vector3.zero;
@@ -172,9 +170,13 @@ namespace i3vr
             androidPlugin.Call("setDeviceName", deviceName);
         }
 
-        private void OnStop()
+        private static void OnStop()
         {
             androidPlugin.Call("onStop");
+        }
+
+        public static void BleRelease() {
+            OnStop();
         }
 
         private I3vrConnectionState I3vrControllerConnectionState()

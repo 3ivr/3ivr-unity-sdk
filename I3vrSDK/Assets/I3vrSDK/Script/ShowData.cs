@@ -59,6 +59,11 @@ namespace i3vr
             TouchOrigin = Touch.rectTransform.localPosition;
         }
 
+        private void OnApplicationQuit()
+        {
+            AndroidServiceProvider.BleRelease();
+        }
+
         // Update is called once per frame
         void Update()
         {

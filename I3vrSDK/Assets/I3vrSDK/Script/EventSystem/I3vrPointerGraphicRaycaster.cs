@@ -2,7 +2,7 @@
  * Copyright (C) 2017 3ivr. All rights reserved.
  *
  * Author: Lucas(Wu Pengcheng)
- * Date  : 2017/06/19 08:08
+ * Date  : 2017/07/04 17:05
  */
 
 using System.Collections.Generic;
@@ -53,7 +53,7 @@ public class I3vrPointerGraphicRaycaster : I3vrBasePointerRaycaster
                             return Camera.main;
                         }
 
-                        Transform pointerTransform = I3vrPointerManager.Pointer.GetPointerTransform();
+                        Transform pointerTransform = I3vrPointerManager.Pointer.PointerTransform;
                         cachedPointerEventCamera = pointerTransform.GetComponent<Camera>();
 
                         if (cachedPointerEventCamera == null)
@@ -93,19 +93,14 @@ public class I3vrPointerGraphicRaycaster : I3vrBasePointerRaycaster
             return;
         }
 
-        if (eventCamera == null)
-        {
-            return;
-        }
-
-        if (!IsPointerAvailable())
+        if (!IsPointerAvailable() || eventCamera == null)
         {
             return;
         }
 
         if (canvas.renderMode != RenderMode.WorldSpace)
         {
-            Debug.LogError("I3vrPointerGraphicRaycaster requires that the canvase renderMode is set to WorldSpace.");
+            Debug.LogError("I3vrPointerGraphicRaycaster requires that the canvas renderMode is set to WorldSpace.");
             return;
         }
 
@@ -159,8 +154,10 @@ public class I3vrPointerGraphicRaycaster : I3vrBasePointerRaycaster
 
                 Transform trans = go.transform;
                 Vector3 transForward = trans.forward;
-                // http://geomalgorithms.com/a06-_intersect-2.html
-                distance = (Vector3.Dot(transForward, trans.position - finalRay.origin) / Vector3.Dot(transForward, finalRay.direction));
+
+                float transDot = Vector3.Dot(transForward, trans.position - finalRay.origin);
+                float rayDot = Vector3.Dot(transForward, finalRay.direction);
+                distance = transDot / rayDot;
 
                 // Check to see if the go is behind the camera.
                 if (distance < 0)
@@ -173,13 +170,15 @@ public class I3vrPointerGraphicRaycaster : I3vrBasePointerRaycaster
                     continue;
                 }
 
+                Vector3 hitPosition = finalRay.origin + (finalRay.direction * distance);
+
                 RaycastResult castResult = new RaycastResult
                 {
                     gameObject = go,
                     module = this,
                     distance = distance,
-                    worldPosition = finalRay.origin + (finalRay.direction * distance),
-                    screenPosition = eventData.position,
+                    worldPosition = hitPosition,
+                    screenPosition = eventCamera.WorldToScreenPoint(hitPosition),
                     index = resultAppendList.Count,
                     depth = raycastResults[index].depth,
                     sortingLayer = canvas.sortingLayerID,
