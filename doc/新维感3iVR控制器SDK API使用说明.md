@@ -86,7 +86,7 @@ Support"组件（默认是已经选取）。如果这是首次在Unity下开发A
 SDK（<https://docs.unity3d.com/Manual/android-sdksetup.html>）。
 
 下载3iVR SDK for
-Unity(https://github.com/3ivr/3ivr-unity-sdk)。包括SDK和demo程序。
+Unity(<https://github.com/3ivr/3ivr-unity-sdk>)。包括SDK和demo程序。
 
 当然你还需要Android手机和3i手柄。
 
