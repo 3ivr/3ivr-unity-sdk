@@ -1,43 +1,43 @@
 **广州新维感3i VR手柄SDK API使用说明**
 =====================================
 
-[1 概述 7](#概述)
+[1 概述](#概述)
 
-[2 Unity3D入门 8](#unity3d入门)
+[2 Unity3D入门](#unity3d入门)
 
-[2.1 先决条件 8](#先决条件)
+  [2.1 先决条件](#先决条件)
 
-[2.2 导入SDK 8](#导入sdk)
+  [2.2 导入SDK](#导入sdk)
 
-[2.3 启用I3vr控制器和UI的支持 8](#启用i3vr控制器和ui的支持)
+  [2.3 启用I3vr控制器和UI的支持](#启用i3vr控制器和ui的支持)
 
-[2.4 示例场景 9](#示例场景)
+  [2.4 示例场景](#示例场景)
 
-[2.5 发布设置 9](#发布设置)
+  [2.5 发布设置](#发布设置)
 
-[2.6 3iVR控制器支持 10](#ivr控制器支持)
+  [2.6 3iVR控制器支持](#ivr控制器支持)
 
-[2.6.1 Arm Model 10](#arm-model)
+    [2.6.1 Arm Model](#arm-model)
 
-[2.6.2 Input System 10](#input-system)
+    [2.6.2 Input System](#input-system)
 
-[2.6.3 Laser and reticle visualization 10](#laser-and-reticle-visualization)
+    [2.6.3 Laser and reticle visualization](#laser-and-reticle-visualization)
 
-[2.6.4 Controller Visualization 10](#controller-visualization)
+    [2.6.4 Controller Visualization](#controller-visualization)
 
-[3 API参考 11](#api参考)
+[3 API参考](#api参考)
 
-[3.1 I3vrController 11](#i3vrcontroller)
+  [3.1 I3vrController](#i3vrcontroller)
 
-[3.2 I3vrArmModel 14](#i3vrarmmodel)
+  [3.2 I3vrArmModel](#i3vrarmmodel)
 
-[3.3 I3vrArmModelOffsets 15](#i3vrarmmodeloffsets)
+  [3.3 I3vrArmModelOffsets](#i3vrarmmodeloffsets)
 
-[3.4 I3vrLaserPointer 16](#i3vrlaserpointer)
+  [3.4 I3vrLaserPointer](#i3vrlaserpointer)
 
-[3.5 I3vrControllerManager 16](#i3vrcontrollermanager)
+  [3.5 I3vrControllerManager](#i3vrcontrollermanager)
 
-[4 Appendices 18](#appendices)
+[4 Appendices](#appendices)
 
 
 概述
