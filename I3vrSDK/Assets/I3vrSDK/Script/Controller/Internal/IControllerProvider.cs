@@ -19,5 +19,9 @@ namespace i3vr
 
         /// Reads the controller's current state and stores it in outState.
         void ReadState(ControllerState outState);
+
+        void RightReadState(ControllerState outState);
+
+        void LeftReadState(ControllerState outState);
     }
 }

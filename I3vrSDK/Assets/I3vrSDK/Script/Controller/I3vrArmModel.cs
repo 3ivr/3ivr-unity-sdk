@@ -6,7 +6,6 @@
  */
 
 using UnityEngine;
-using i3vr;
 
 /// The I3vrArmModel is a standard interface to interact with a scene with the controller.
 /// It is responsible for:
@@ -18,8 +17,7 @@ using i3vr;
 [RequireComponent(typeof(I3vrController))]
 public class I3vrArmModel : MonoBehaviour
 {
-    private static I3vrArmModel instance = null;
-
+    private string ControllerTag;
     /// Initial relative location of the shoulder (meters).
     private static readonly Vector3 DEFAULT_SHOULDER_RIGHT = new Vector3(0.19f, -0.19f, -0.03f);
 
@@ -84,15 +82,17 @@ public class I3vrArmModel : MonoBehaviour
     /// Multiplier for handedness such that 1 = Right, 0 = Center, -1 = left.
     private Vector3 handedMultiplier;
 
+    private I3vrController controller;
+    private I3vrArmModel instance = null;
 
     /// Use the I3vrController singleton to obtain a singleton for this class.
-    public static I3vrArmModel Instance
+    public I3vrArmModel Instance
     {
         get
         {
             if (instance == null)
             {
-                instance = I3vrController.ArmModel;
+                instance = controller.ArmModel;
             }
             return instance != null && instance.isActiveAndEnabled ? instance : null;
         }
@@ -166,8 +166,8 @@ public class I3vrArmModel : MonoBehaviour
 
     void Start()
     {
-        // Obtain the I3vr controller from the scene.
-        I3vrController controller = GetComponent<I3vrController>();
+        controller = GetComponent<I3vrController>();
+        ControllerTag = gameObject.tag;
 
         UpdateHandedness();
 
@@ -183,7 +183,6 @@ public class I3vrArmModel : MonoBehaviour
     void OnDestroy()
     {
         // Unregister the controller update listener.
-        I3vrController controller = GetComponent<I3vrController>();
         controller.OnControllerUpdate -= OnControllerUpdate;
 
         // Reset the singleton instance.
@@ -194,7 +193,7 @@ public class I3vrArmModel : MonoBehaviour
     {
         UpdateHandedness();
         UpdateTorsoDirection();
-        if (I3vrController.ConnectionState == I3vrConnectionState.Connected)
+        if (controller.ConnectionState == I3vrConnectionState.Connected)
         {
             UpdateFromController();
         }
@@ -218,20 +217,12 @@ public class I3vrArmModel : MonoBehaviour
 
     private void UpdateHandedness()
     {
-        // Update user handedness if the setting has changed
-        I3vrSettings.UserPrefsHandedness handedness = I3vrSettings.Handedness;
-
-        // Determine handedness multiplier.
         handedMultiplier.Set(0, 1, 1);
-        if (handedness == I3vrSettings.UserPrefsHandedness.Right)
-        {
-            handedMultiplier.x = 1.0f;
-        }
-        else if (handedness == I3vrSettings.UserPrefsHandedness.Left)
+        handedMultiplier.x = 1.0f;
+        if (ControllerTag.Equals("LeftController"))
         {
             handedMultiplier.x = -1.0f;
         }
-
         // Place the shoulder in anatomical positions based on the height and handedness.
         shoulderRotation = Quaternion.identity;
         shoulderPosition = Vector3.Scale(DEFAULT_SHOULDER_RIGHT, handedMultiplier);
@@ -262,7 +253,7 @@ public class I3vrArmModel : MonoBehaviour
         }
         else if (followGaze == GazeBehavior.DuringMotion)
         {
-            float angularVelocity = I3vrController.Gyro.magnitude;
+            float angularVelocity = controller.Gyro.magnitude;
             float gazeFilterStrength = Mathf.Clamp((angularVelocity - 0.2f) / 45.0f, 0.0f, 0.1f);
             torsoDirection = Vector3.Slerp(torsoDirection, gazeDirection, gazeFilterStrength);
         }
@@ -276,7 +267,7 @@ public class I3vrArmModel : MonoBehaviour
     private void UpdateFromController()
     {
         // Get the orientation-adjusted acceleration.
-        Vector3 accel = I3vrController.Orientation * I3vrController.Accel;
+        Vector3 accel = controller.Orientation * controller.Accel;
         accel *= GRAVITY_FORCE;
 
         // Very slowly calibrate gravity force out of acceleration.
@@ -339,7 +330,7 @@ public class I3vrArmModel : MonoBehaviour
     private void ApplyArmModel()
     {
         // Find the controller's orientation relative to the player
-        Quaternion controllerOrientation = I3vrController.Orientation;
+        Quaternion controllerOrientation = controller.Orientation;
         controllerOrientation = Quaternion.Inverse(shoulderRotation) * controllerOrientation;
 
         // Get the relative positions of the joints

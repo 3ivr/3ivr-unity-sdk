@@ -217,7 +217,7 @@ public class I3vrLaserPointerImpl : I3vrBasePointer
         LaserLineRenderer.SetPosition(1, lineEndPoint);
 
         // Adjust transparency
-        float alpha = I3vrArmModel.Instance.alphaValue;
+        float alpha = I3vrControllerManager.I3vrRightController.ArmModel.Instance.alphaValue;
         LaserLineRenderer.SetColors(Color.Lerp(Color.clear, LaserColor, alpha), Color.clear);
     }
 }

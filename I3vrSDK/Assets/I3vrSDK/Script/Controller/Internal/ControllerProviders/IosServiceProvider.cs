@@ -12,6 +12,11 @@ using System;
 
 class IosServiceProvider : IControllerProvider
 {
+    public void LeftReadState(ControllerState outState)
+    {
+        //throw new NotImplementedException();
+    }
+
     public void OnPause()
     {
 
@@ -27,4 +32,8 @@ class IosServiceProvider : IControllerProvider
         outState.connectionState = I3vrConnectionState.Error;
     }
 
+    public void RightReadState(ControllerState outState)
+    {
+        //throw new NotImplementedException();
+    }
 }

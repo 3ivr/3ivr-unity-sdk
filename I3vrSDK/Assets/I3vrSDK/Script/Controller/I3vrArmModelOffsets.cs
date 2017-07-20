@@ -11,6 +11,7 @@ using UnityEngine;
 /// according to a joint in the arm model. See i3vrArmModel.cs for details.
 public class I3vrArmModelOffsets : MonoBehaviour
 {
+    private I3vrController controller;
     public enum Joint
     {
         Pointer,
@@ -18,10 +19,18 @@ public class I3vrArmModelOffsets : MonoBehaviour
         Shoulder,
         Elbow
     }
-
+    public DataSource ControllerDataSource = DataSource.Right;
     /// Determines which joint to set the position and rotation to.
     public Joint joint;
 
+    private void Start()
+    {
+        controller = I3vrControllerManager.I3vrRightController;
+        if (ControllerDataSource == DataSource.Left)
+        {
+            controller = I3vrControllerManager.I3vrLeftController;
+        }
+    }
     void LateUpdate()
     {
         Vector3 jointPosition;
@@ -29,20 +38,20 @@ public class I3vrArmModelOffsets : MonoBehaviour
         switch (joint)
         {
             case Joint.Pointer:
-                jointPosition = I3vrArmModel.Instance.pointerPosition;
-                jointRotation = I3vrArmModel.Instance.pointerRotation;
+                jointPosition = controller.ArmModel.Instance.pointerPosition;
+                jointRotation = controller.ArmModel.Instance.pointerRotation;
                 break;
             case Joint.Wrist:
-                jointPosition = I3vrArmModel.Instance.wristPosition;
-                jointRotation = I3vrArmModel.Instance.wristRotation;
+                jointPosition = controller.ArmModel.Instance.wristPosition;
+                jointRotation = controller.ArmModel.Instance.wristRotation;
                 break;
             case Joint.Elbow:
-                jointPosition = I3vrArmModel.Instance.elbowPosition;
-                jointRotation = I3vrArmModel.Instance.elbowRotation;
+                jointPosition = controller.ArmModel.Instance.elbowPosition;
+                jointRotation = controller.ArmModel.Instance.elbowRotation;
                 break;
             case Joint.Shoulder:
-                jointPosition = I3vrArmModel.Instance.shoulderPosition;
-                jointRotation = I3vrArmModel.Instance.shoulderRotation;
+                jointPosition = controller.ArmModel.Instance.shoulderPosition;
+                jointRotation = controller.ArmModel.Instance.shoulderRotation;
                 break;
             default:
                 throw new System.Exception("Invalid FromJoint.");

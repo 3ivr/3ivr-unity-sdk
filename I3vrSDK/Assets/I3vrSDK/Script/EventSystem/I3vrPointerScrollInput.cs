@@ -19,7 +19,6 @@ public class I3vrPointerScrollInput
 {
     public const string PROPERTY_NAME_INERTIA = "inertia";
     public const string PROPERTY_NAME_DECELERATION_RATE = "decelerationRate";
-
     private class ScrollInfo
     {
         public bool isScrolling = false;
@@ -65,10 +64,10 @@ public class I3vrPointerScrollInput
         bool touchUp = false;
         Vector2 currentScroll = Vector2.zero;
 
-        touchDown |= I3vrController.TouchDown;
-        touching |= I3vrController.IsTouching;
-        touchUp |= I3vrController.TouchUp;
-        currentScroll = I3vrController.TouchPos * SCROLL_DELTA_MULTIPLIER;
+        touchDown |= I3vrControllerManager.I3vrRightController.TouchDown;
+        touching |= I3vrControllerManager.I3vrRightController.IsTouching;
+        touchUp |= I3vrControllerManager.I3vrRightController.TouchUp;
+        currentScroll = I3vrControllerManager.I3vrRightController.TouchPos * SCROLL_DELTA_MULTIPLIER;
 
         if (!isPointerActiveAndAvailable)
         {

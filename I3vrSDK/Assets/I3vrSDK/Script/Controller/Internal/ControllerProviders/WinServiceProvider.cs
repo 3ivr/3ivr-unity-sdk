@@ -12,9 +12,14 @@ using System;
 
 class WinServiceProvider : IControllerProvider
 {
+    public void LeftReadState(ControllerState outState)
+    {
+
+    }
+
     public void OnPause()
     {
-        
+
     }
 
     public void OnResume()
@@ -27,5 +32,9 @@ class WinServiceProvider : IControllerProvider
         outState.connectionState = I3vrConnectionState.Error;
     }
 
+    public void RightReadState(ControllerState outState)
+    {
+
+    }
 }
 

@@ -12,14 +12,16 @@ using UnityEngine.UI;
 
 public class DisplayTooltips : MonoBehaviour
 {
+    private I3vrController controller;
+    private GameObject ButtonTooltips;
+    private Image TouchPadPos;
+    private Vector3 StartPoint;
+    private Vector3 TouchPosPoint;
+
     public bool IsDisplayUI;
     public float MinAngles_x;
     public float MaxAngles_x;
-    GameObject ButtonTooltips;
-
-    Image TouchPadPos;
-    Vector3 StartPoint;
-    Vector3 TouchPosPoint;
+    public DataSource ControllerDataSource = DataSource.Right;
 
     private void Awake()
     {
@@ -27,6 +29,14 @@ public class DisplayTooltips : MonoBehaviour
         TouchPadPos = transform.FindChild("Tooltip").FindChild("TouchPoint").GetComponent<Image>();
         ButtonTooltips.SetActive(false);
         StartPoint = TouchPadPos.rectTransform.localPosition;
+    }
+    private void Start()
+    {
+        controller = I3vrControllerManager.I3vrRightController;
+        if (ControllerDataSource == DataSource.Left)
+        {
+            controller = I3vrControllerManager.I3vrLeftController;
+        }
     }
 
     // Update is called once per frame
@@ -40,17 +50,12 @@ public class DisplayTooltips : MonoBehaviour
             }
             else ButtonTooltips.SetActive(false);
         }
-        if (I3vrController.IsTouching)
+        if (controller.IsTouching)
         {
             TouchPadPos.gameObject.SetActive(true);
-            TouchPosPoint.Set(I3vrController.TouchPos.x, -I3vrController.TouchPos.y, 0);
+            TouchPosPoint.Set(controller.TouchPos.x, -controller.TouchPos.y, 0);
             TouchPadPos.rectTransform.localPosition = StartPoint + TouchPosPoint * 108;
         }
         else TouchPadPos.gameObject.SetActive(false);
-
-        if (Input.GetKeyDown(KeyCode.Escape))
-        {
-            Application.Quit();
-        }
     }
 }

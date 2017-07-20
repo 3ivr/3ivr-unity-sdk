@@ -29,13 +29,29 @@ namespace i3vr
             Right,
         }
 
-        private const string className = "com.unity3d.player.UnityPlayer";
-        private const string fieldName = "currentActivity";
-        private const string apiClassName = "cn.i3vr.vr.sdk.controller.I3vrController";
+        private const string UNITY_PLAY_CLASS_NAME = "com.unity3d.player.UnityPlayer";
+        private const string CURRENT_ACTIVITY_FIELD_NAME = "currentActivity";
+        private const string I3VR_CONTROLLER_CLASS_NAME = "cn.i3vr.vr.sdk.controller.I3vrController";
 
-        private static AndroidJavaClass javaUnityPlayer;
-        private static AndroidJavaObject currentActivity;
+        private const int I3VR_CONTROLLER_DISCONNECTED = 0;
+        private const int I3VR_CONTROLLER_SCANNING = 1;
+        private const int I3VR_CONTROLLER_CONNECTING = 2;
+        private const int I3VR_CONTROLLER_CONNECTED = 3;
+
+        private const int I3VR_CONTROLLER_API_OK = 0;
+        private const int I3VR_CONTROLLER_API_UNSUPPORTED = 1;
+        private const int I3VR_CONTROLLER_API_NOT_AUTHORIZED = 2;
+        private const int I3VR_CONTROLLER_API_UNAVAILABLE = 3;
+        private const int I3VR_CONTROLLER_API_SERVICE_OBSOLETE = 4;
+        private const int I3VR_CONTROLLER_API_CLIENT_OBSOLETE = 5;
+        private const int I3VR_CONTROLLER_API_MALFUNCTION = 6;
+
+        private AndroidJavaClass javaUnityPlayer;
+        private AndroidJavaObject currentActivity;
         private static AndroidJavaObject androidPlugin;
+        private AndroidJavaObject controllerInfo;
+
+        public static long rightFrame;
 
         private float[] rawOri;
         private float[] rawAccel;
@@ -52,32 +68,20 @@ namespace i3vr
         private Quaternion lastRawOrientation = Quaternion.identity;
         private Vector3 YawRotation = Vector3.zero;
 
-        private const int I3VR_CONTROLLER_DISCONNECTED = 0;
-        private const int I3VR_CONTROLLER_SCANNING = 1;
-        private const int I3VR_CONTROLLER_CONNECTING = 2;
-        private const int I3VR_CONTROLLER_CONNECTED = 3;
-
-        private const int I3VR_CONTROLLER_API_OK = 0;
-        private const int I3VR_CONTROLLER_API_UNSUPPORTED = 1;
-        private const int I3VR_CONTROLLER_API_NOT_AUTHORIZED = 2;
-        private const int I3VR_CONTROLLER_API_UNAVAILABLE = 3;
-        private const int I3VR_CONTROLLER_API_SERVICE_OBSOLETE = 4;
-        private const int I3VR_CONTROLLER_API_CLIENT_OBSOLETE = 5;
-        private const int I3VR_CONTROLLER_API_MALFUNCTION = 6;
-
         internal AndroidServiceProvider(string deviceName = "i3vr")
         {
-            javaUnityPlayer = new AndroidJavaClass(className);
-            currentActivity = javaUnityPlayer.GetStatic<AndroidJavaObject>(fieldName);
-            androidPlugin = new AndroidJavaObject(apiClassName, currentActivity);
+            javaUnityPlayer = new AndroidJavaClass(UNITY_PLAY_CLASS_NAME);
+            currentActivity = javaUnityPlayer.GetStatic<AndroidJavaObject>(CURRENT_ACTIVITY_FIELD_NAME);
+            androidPlugin = new AndroidJavaObject(I3VR_CONTROLLER_CLASS_NAME, currentActivity);
             OnCreate();
+            controllerInfo = androidPlugin.Call<AndroidJavaObject>("getControllerInfo");
             SetDeviceName(deviceName);
-            OnStart();
+            OnResumeBle();
         }
 
         ~AndroidServiceProvider()
         {
-            OnStop();
+            OnDestroy();
         }
 
         public void OnPause() { }
@@ -92,6 +96,8 @@ namespace i3vr
                 if (outState.connectionState == I3vrConnectionState.Connected)
                 {
                     outState.apiStatus = I3vrControllerGetApiStatus();
+
+                    rightFrame = OnGetFrameNumber();
 
                     rawOri = I3vrControllerOrientation();
                     rawOriQua.Set(-rawOri[1], rawOri[2], -rawOri[0], rawOri[3]);
@@ -162,7 +168,7 @@ namespace i3vr
 
         private void OnStart()
         {
-            androidPlugin.Call("onStart");
+            controllerInfo.Call("onStart");
         }
 
         private void SetDeviceName(String deviceName)
@@ -170,18 +176,34 @@ namespace i3vr
             androidPlugin.Call("setDeviceName", deviceName);
         }
 
-        private static void OnStop()
+        private void OnStop()
         {
             androidPlugin.Call("onStop");
         }
 
-        public static void BleRelease() {
-            OnStop();
+        private static void OnDestroy()
+        {
+            androidPlugin.Call("onDestroy");
+        }
+
+        public static void BleDestroy()
+        {
+            OnDestroy();
+        }
+
+        private void OnResumeBle()
+        {
+            androidPlugin.Call("onResume");
+        }
+
+        private long OnGetFrameNumber()
+        {
+            return controllerInfo.Call<long>("getFrameNumber");
         }
 
         private I3vrConnectionState I3vrControllerConnectionState()
         {
-            switch (androidPlugin.Call<int>("getConnectionState"))
+            switch (controllerInfo.Call<int>("getConnectionState"))
             {
                 case I3VR_CONTROLLER_DISCONNECTED:
                     return I3vrConnectionState.Disconnected;
@@ -197,7 +219,7 @@ namespace i3vr
 
         private I3vrControllerApiStatus I3vrControllerGetApiStatus()
         {
-            switch (androidPlugin.Call<int>("getApiStatus"))
+            switch (controllerInfo.Call<int>("getApiStatus"))
             {
                 case I3VR_CONTROLLER_API_OK:
                     return I3vrControllerApiStatus.Ok;
@@ -219,57 +241,57 @@ namespace i3vr
 
         private float[] I3vrControllerOrientation()
         {
-            return androidPlugin.Call<float[]>("getQuaternion");
+            return controllerInfo.Call<float[]>("getQuaternion");
         }
 
         private float[] I3vrControllerAccel()
         {
-            return androidPlugin.Call<float[]>("getAccelerometer");
+            return controllerInfo.Call<float[]>("getAccelerometer");
         }
 
         private float[] I3vrControllerGyro()
         {
-            return androidPlugin.Call<float[]>("getGyro");
+            return controllerInfo.Call<float[]>("getGyro");
         }
 
         private float[] I3vrControllerTouchPos()
         {
-            return androidPlugin.Call<float[]>("getTouchPos");
+            return controllerInfo.Call<float[]>("getTouchPos");
         }
 
         private bool I3vrControllerIsTouching()
         {
-            return androidPlugin.Call<bool>("isTouching");
+            return controllerInfo.Call<bool>("isTouching");
         }
 
         private bool I3vrControllerTouchUp()
         {
-            return androidPlugin.Call<bool>("getTouchUp");
+            return controllerInfo.Call<bool>("getTouchUp");
         }
 
         private bool I3vrControllerTouchDown()
         {
-            return androidPlugin.Call<bool>("getTouchDown");
+            return controllerInfo.Call<bool>("getTouchDown");
         }
 
         private bool I3vrControllerButtonState(buttonType cb)
         {
-            return androidPlugin.Call<bool>("getButtonState", (int)cb);
+            return controllerInfo.Call<bool>("getButtonState", (int)cb);
         }
 
         private bool I3vrControllerButtonDown(buttonType cb)
         {
-            return androidPlugin.Call<bool>("getButtonDown", (int)cb);
+            return controllerInfo.Call<bool>("getButtonDown", (int)cb);
         }
 
         private bool I3vrControllerButtonUp(buttonType cb)
         {
-            return androidPlugin.Call<bool>("getButtonUp", (int)cb);
+            return controllerInfo.Call<bool>("getButtonUp", (int)cb);
         }
 
         private bool I3vrControllerRecentered()
         {
-            return androidPlugin.Call<bool>("getRecentered");
+            return controllerInfo.Call<bool>("getRecentered");
         }
 
         private void I3vrControllerGestureDirection(ControllerState outState)
@@ -278,7 +300,7 @@ namespace i3vr
             outState.touchGestureDown = false;
             outState.touchGestureLeft = false;
             outState.touchGestureRight = false;
-            int gestureDirection = androidPlugin.Call<int>("getGestureDirection");
+            int gestureDirection = controllerInfo.Call<int>("getGestureDirection");
             switch (gestureDirection)
             {
                 case (int)GestureDirection.Up:
@@ -294,6 +316,16 @@ namespace i3vr
                     outState.touchGestureRight = true;
                     break;
             }
+        }
+
+        public void RightReadState(ControllerState outState)
+        {
+            
+        }
+
+        public void LeftReadState(ControllerState outState)
+        {
+            
         }
     }
 }

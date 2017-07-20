@@ -54,6 +54,7 @@ public enum I3vrControllerApiStatus
 };
 
 
+
 /// Main entry point for the I3vr controller API.
 ///
 /// To use this API, add this behavior to a GameObject in your scene, or use the
@@ -65,22 +66,22 @@ public enum I3vrControllerApiStatus
 /// to know the controller's current orientation, use I3vrController.Orientation.
 public class I3vrController : MonoBehaviour
 {
-    private static I3vrController instance;
+    private string ControllerTag;
     private static IControllerProvider controllerProvider;
-
     private ControllerState controllerState = new ControllerState();
     private IEnumerator controllerUpdate;
     private WaitForEndOfFrame waitForEndOfFrame = new WaitForEndOfFrame();
+    private ControllerType controllerNumb;
 
+    [HideInInspector]
+    public I3vrController instance;
     /// Event handler for receiving button, track pad, and IMU updates from the controller.
     public delegate void OnControllerUpdateEvent();
     public event OnControllerUpdateEvent OnControllerUpdate;
-
     public delegate void OnHeadsetRecenter();
     public event OnHeadsetRecenter HeadsetRecenter;
-
     /// Returns the arm model instance associated with the controller.
-    public static I3vrArmModel ArmModel
+    public I3vrArmModel ArmModel
     {
         get
         {
@@ -89,7 +90,7 @@ public class I3vrController : MonoBehaviour
     }
 
     /// Returns the controller's current connection state.
-    public static I3vrConnectionState ConnectionState
+    public I3vrConnectionState ConnectionState
     {
         get
         {
@@ -98,7 +99,7 @@ public class I3vrController : MonoBehaviour
     }
 
     /// Returns the API status of the current controller state.
-    public static I3vrControllerApiStatus ApiStatus
+    public I3vrControllerApiStatus ApiStatus
     {
         get
         {
@@ -111,7 +112,7 @@ public class I3vrController : MonoBehaviour
     /// X pointing to the right, Y pointing up and Z pointing forward. Therefore, to make an
     /// object in your scene have the same orientation as the controller, simply assign this
     /// quaternion to the GameObject's transform.rotation.
-    public static Quaternion Orientation
+    public Quaternion Orientation
     {
         get
         {
@@ -125,7 +126,7 @@ public class I3vrController : MonoBehaviour
     /// along the controller's body, pointing towards the front. The angular speed is given
     /// in radians per second, using the right-hand rule (positive means a right-hand rotation
     /// about the given axis).
-    public static Vector3 Gyro
+    public Vector3 Gyro
     {
         get
         {
@@ -142,7 +143,7 @@ public class I3vrController : MonoBehaviour
     /// it will measure an acceleration of 9.8 m/s^2 on the Y axis. The accelerometer reading
     /// will be zero on all three axes only if the controller is in free fall, or if the user
     /// is in a zero gravity environment like a space station.
-    public static Vector3 Accel
+    public Vector3 Accel
     {
         get
         {
@@ -151,7 +152,7 @@ public class I3vrController : MonoBehaviour
     }
 
     /// If true, the user is currently touching the controller's touchpad.
-    public static bool IsTouching
+    public bool IsTouching
     {
         get
         {
@@ -161,7 +162,7 @@ public class I3vrController : MonoBehaviour
 
     /// If true, the user just started touching the touchpad. This is an event flag (it is true
     /// for only one frame after the event happens, then reverts to false).
-    public static bool TouchDown
+    public bool TouchDown
     {
         get
         {
@@ -171,7 +172,7 @@ public class I3vrController : MonoBehaviour
 
     /// If true, the user just stopped touching the touchpad. This is an event flag (it is true
     /// for only one frame after the event happens, then reverts to false).
-    public static bool TouchUp
+    public bool TouchUp
     {
         get
         {
@@ -179,7 +180,7 @@ public class I3vrController : MonoBehaviour
         }
     }
 
-    public static Vector2 TouchPos
+    public Vector2 TouchPos
     {
         get
         {
@@ -192,7 +193,7 @@ public class I3vrController : MonoBehaviour
     /// when recentering was completed was remapped to mean "forward"). This is an event flag
     /// (it is true for only one frame after the event happens, then reverts to false).
     /// The headset is recentered together with the controller.
-    public static bool Recentered
+    public bool Recentered
     {
         get
         {
@@ -203,7 +204,7 @@ public class I3vrController : MonoBehaviour
     /// If true, the trigger button (touchpad button) is currently being pressed. This is not
     /// an event: it represents the button's state (it remains true while the button is being
     /// pressed).
-    public static bool TriggerButton
+    public bool TriggerButton
     {
         get
         {
@@ -213,7 +214,7 @@ public class I3vrController : MonoBehaviour
 
     /// If true, the trigger button was just pressed. This is an event flag: it will be true for
     /// only one frame after the event happens.
-    public static bool TriggerButtonDown
+    public bool TriggerButtonDown
     {
         get
         {
@@ -223,7 +224,7 @@ public class I3vrController : MonoBehaviour
 
     /// If true, the trigger button was just released. This is an event flag: it will be true for
     /// only one frame after the event happens.
-    public static bool TriggerButtonUp
+    public bool TriggerButtonUp
     {
         get
         {
@@ -234,7 +235,7 @@ public class I3vrController : MonoBehaviour
     /// If true, the app button (touchpad button) is currently being pressed. This is not
     /// an event: it represents the button's state (it remains true while the button is being
     /// pressed).
-    public static bool AppButton
+    public bool AppButton
     {
         get
         {
@@ -244,7 +245,7 @@ public class I3vrController : MonoBehaviour
 
     /// If true, the app button was just pressed. This is an event flag: it will be true for
     /// only one frame after the event happens.
-    public static bool AppButtonDown
+    public bool AppButtonDown
     {
         get
         {
@@ -254,7 +255,7 @@ public class I3vrController : MonoBehaviour
 
     /// If true, the app button was just released. This is an event flag: it will be true for
     /// only one frame after the event happens.
-    public static bool AppButtonUp
+    public bool AppButtonUp
     {
         get
         {
@@ -264,7 +265,7 @@ public class I3vrController : MonoBehaviour
     /// If true, the home button (touchpad button) is currently being pressed. This is not
     /// an event: it represents the button's state (it remains true while the button is being
     /// pressed).
-    public static bool HomeButton
+    public bool HomeButton
     {
         get
         {
@@ -274,7 +275,7 @@ public class I3vrController : MonoBehaviour
 
     /// If true, the home button was just pressed. This is an event flag: it will be true for
     /// only one frame after the event happens.
-    public static bool HomeButtonDown
+    public bool HomeButtonDown
     {
         get
         {
@@ -284,7 +285,7 @@ public class I3vrController : MonoBehaviour
 
     /// If true, the home button was just released. This is an event flag: it will be true for
     /// only one frame after the event happens.
-    public static bool HomeButtonUp
+    public bool HomeButtonUp
     {
         get
         {
@@ -295,7 +296,7 @@ public class I3vrController : MonoBehaviour
     /// If true, the switch button (touchpad button) is currently being pressed. This is not
     /// an event: it represents the button's state (it remains true while the button is being
     /// pressed).
-    public static bool SwitchButton
+    public bool SwitchButton
     {
         get
         {
@@ -305,7 +306,7 @@ public class I3vrController : MonoBehaviour
 
     /// If true, the switch button was just pressed. This is an event flag: it will be true for
     /// only one frame after the event happens.
-    public static bool SwitchButtonDown
+    public bool SwitchButtonDown
     {
         get
         {
@@ -315,7 +316,7 @@ public class I3vrController : MonoBehaviour
 
     /// If true, the switch button was just released. This is an event flag: it will be true for
     /// only one frame after the event happens.
-    public static bool SwitchButtonUp
+    public bool SwitchButtonUp
     {
         get
         {
@@ -325,7 +326,7 @@ public class I3vrController : MonoBehaviour
 
     /// If true, the touch pad's left direction. This is an event flag: 
     /// it will be true for only one frame after the event happens.
-    public static bool TouchGestureLeft
+    public bool TouchGestureLeft
     {
         get
         {
@@ -335,7 +336,7 @@ public class I3vrController : MonoBehaviour
 
     /// If true, the touch pad's right direction. This is an event flag: 
     /// it will be true for only one frame after the event happens.
-    public static bool TouchGestureRight
+    public bool TouchGestureRight
     {
         get
         {
@@ -345,7 +346,7 @@ public class I3vrController : MonoBehaviour
 
     /// If true, the touch pad's up direction. This is an event flag: 
     /// it will be true for only one frame after the event happens.
-    public static bool TouchGestureUp
+    public bool TouchGestureUp
     {
         get
         {
@@ -355,7 +356,7 @@ public class I3vrController : MonoBehaviour
 
     /// If true, the touch pad's down direction. This is an event flag: 
     /// it will be true for only one frame after the event happens.
-    public static bool TouchGestureDown
+    public bool TouchGestureDown
     {
         get
         {
@@ -364,7 +365,7 @@ public class I3vrController : MonoBehaviour
     }
 
     /// If State == I3vrConnectionState.Error, this contains details about the error.
-    public static string ErrorDetails
+    public string ErrorDetails
     {
         get
         {
@@ -381,20 +382,14 @@ public class I3vrController : MonoBehaviour
         }
     }
 
-
     void Awake()
     {
-        if (instance != null)
-        {
-            Debug.LogError("More than one I3vrController instance was found in your scene. "
-                + "Ensure that there is only one I3vrController.");
-            this.enabled = false;
-            return;
-        }
-        instance = this;
+        ControllerTag = gameObject.tag;
+        controllerNumb = I3vrControllerManager.I3vrControllerNumb;
+        instance = GetComponent<I3vrController>();
         if (controllerProvider == null)
         {
-            controllerProvider = ControllerProviderFactory.CreateControllerProvider(this);
+            controllerProvider = ControllerProviderFactory.CreateControllerProvider(controllerNumb);
         }
         Screen.sleepTimeout = SleepTimeout.NeverSleep;
     }
@@ -403,15 +398,25 @@ public class I3vrController : MonoBehaviour
     {
         instance = null;
     }
-    
+
     private void UpdateController()
     {
-        controllerProvider.ReadState(controllerState);
+        if (controllerNumb == ControllerType.LeftAndRight)
+        {
+            if (ControllerTag.Equals("LeftController"))
+            {
+                controllerProvider.LeftReadState(instance.controllerState);
+            }
+            else controllerProvider.RightReadState(instance.controllerState);
+        }
+        else controllerProvider.ReadState(controllerState);
+
         if (controllerState.headsetRecenterRequested)
         {
-            if (HeadsetRecenter!=null) {
+            if (HeadsetRecenter != null)
+            {
                 HeadsetRecenter();
-            }         
+            }
             controllerState.headsetRecenterRequested = false;
         }
     }

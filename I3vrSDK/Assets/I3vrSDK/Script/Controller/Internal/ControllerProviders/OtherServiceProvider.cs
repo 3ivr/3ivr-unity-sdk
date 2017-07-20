@@ -12,14 +12,19 @@ using System;
 
 class OtherServiceProvider : IControllerProvider
 {
-    public void OnPause()
+    public void LeftReadState(ControllerState outState)
     {
         
     }
 
+    public void OnPause()
+    {
+
+    }
+
     public void OnResume()
     {
-        
+
     }
 
     public void ReadState(ControllerState outState)
@@ -27,4 +32,8 @@ class OtherServiceProvider : IControllerProvider
         outState.connectionState = I3vrConnectionState.Error;
     }
 
+    public void RightReadState(ControllerState outState)
+    {
+        
+    }
 }

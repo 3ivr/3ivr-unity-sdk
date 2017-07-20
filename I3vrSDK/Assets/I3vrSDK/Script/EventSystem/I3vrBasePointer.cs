@@ -26,7 +26,6 @@ using UnityEngine.EventSystems;
 /// 2. Responding to the movement of the I3vr controller (I3vr 3D pointer).
 public abstract class I3vrBasePointer
 {
-
     /// Convenience function to access what the pointer is currently hitting.
     public RaycastResult CurrentRaycastResult
     {
@@ -75,7 +74,7 @@ public abstract class I3vrBasePointer
         get
         {
             bool isTriggerDown = Input.GetMouseButtonDown(0);
-            return isTriggerDown || I3vrController.TriggerButtonDown;
+            return isTriggerDown || I3vrControllerManager.I3vrRightController.TriggerButtonDown;
         }
     }
 
@@ -88,7 +87,7 @@ public abstract class I3vrBasePointer
         get
         {
             bool isTriggering = Input.GetMouseButton(0);
-            return isTriggering || I3vrController.TriggerButton;
+            return isTriggering || I3vrControllerManager.I3vrRightController.TriggerButton;
         }
     }
 

@@ -12,21 +12,34 @@ namespace i3vr
 {
     public class ShowData : MonoBehaviour
     {
-        Image Touch, Home, App, Switch, Trigger, LeftGesture, RightGesture, UpGesture, DownGesture;
-        Text Rotation_Pitch, Rotation_Yaw, Rotation_Roll, Gyro_Pitch, Gyro_Yaw, Gyro_Roll, Accele_Pitch, Accele_Yaw, Accele_Roll, Touch_Pitch,
-        Touch_Yaw, ConnectionStatus;
-        Color Green = Color.green;
-        Color Red = Color.red;
-        Transform ButtonState, RawData;
-        Vector2 TouchOrigin;
-        float TouchPointMoveScope = 243;
-        Vector2 TouchPosV2 = Vector2.zero;
-        Vector3 RawOriV3 = Vector3.zero;
-        WaitForSeconds waitForSeconds = new WaitForSeconds(0.1f);
+        private Image Touch, Home, App, Switch, Trigger, LeftGesture, RightGesture, UpGesture, DownGesture;
+        private Text Rotation_Pitch, Rotation_Yaw, Rotation_Roll, Gyro_Pitch, Gyro_Yaw, Gyro_Roll, Accele_Pitch, Accele_Yaw, Accele_Roll, Touch_Pitch,
+        Touch_Yaw, ConnectionStatus, Frame;
+        private Color Green = Color.green;
+        private Color Red = Color.red;
+        private Transform ButtonState, RawData;
+        private Vector2 TouchOrigin;
+        private float TouchPointMoveScope = 243;
+        private Vector2 TouchPosV2 = Vector2.zero;
+        private Vector3 RawOriV3 = Vector3.zero;
+        private WaitForSeconds waitForSeconds = new WaitForSeconds(0.1f);
+        private float CurrentTime;
+        private I3vrController controller;
+        private long RightPreviouslyFrame;
+        private long RightCurrenFrame;
+        private long LefrPreviouslyFrame;
+        private long LeftCurrenFrame;
 
+        public DataSource ControllerDataSource = DataSource.Right;
         // Use this for initialization
         void Start()
         {
+            controller = I3vrControllerManager.I3vrRightController;
+            if (ControllerDataSource == DataSource.Left)
+            {
+                controller = I3vrControllerManager.I3vrLeftController;
+            }
+
             ButtonState = transform.FindChild("ButtonState");
             RawData = transform.FindChild("RawData");
 
@@ -55,13 +68,10 @@ namespace i3vr
             Touch_Pitch = RawData.FindChild("Touch").FindChild("Pitch").FindChild("Input").GetComponent<Text>();
             Touch_Yaw = RawData.FindChild("Touch").FindChild("Yaw").FindChild("Input").GetComponent<Text>();
 
-            ConnectionStatus= RawData.FindChild("ConnectionStatus").GetComponent<Text>();
+            ConnectionStatus = RawData.FindChild("ConnectionStatus").GetComponent<Text>();
             TouchOrigin = Touch.rectTransform.localPosition;
-        }
 
-        private void OnApplicationQuit()
-        {
-            AndroidServiceProvider.BleRelease();
+            Frame = transform.FindChild("Frame").FindChild("Input").GetComponent<Text>();
         }
 
         // Update is called once per frame
@@ -72,98 +82,125 @@ namespace i3vr
 
         void UpdateState()
         {
-            Quaternion RawOriQua = I3vrController.Orientation;
+            ShowFrame();
+
+            Quaternion RawOriQua = controller.Orientation;
             RawOriV3 = RawOriQua.eulerAngles;
             Rotation_Pitch.text = RawOriV3.x.ToString("f2");
             Rotation_Yaw.text = RawOriV3.y.ToString("f2");
             Rotation_Roll.text = RawOriV3.z.ToString("f2");
 
-            Gyro_Pitch.text = I3vrController.Gyro.x.ToString("f2");
-            Gyro_Yaw.text = I3vrController.Gyro.y.ToString("f2");
-            Gyro_Roll.text = I3vrController.Gyro.z.ToString("f2");
+            Gyro_Pitch.text = controller.Gyro.x.ToString("f2");
+            Gyro_Yaw.text = controller.Gyro.y.ToString("f2");
+            Gyro_Roll.text = controller.Gyro.z.ToString("f2");
 
-            Accele_Pitch.text = I3vrController.Accel.x.ToString("f2");
-            Accele_Yaw.text = I3vrController.Accel.y.ToString("f2");
-            Accele_Roll.text = I3vrController.Accel.z.ToString("f2");
+            Accele_Pitch.text = controller.Accel.x.ToString("f2");
+            Accele_Yaw.text = controller.Accel.y.ToString("f2");
+            Accele_Roll.text = controller.Accel.z.ToString("f2");
 
-            Touch_Pitch.text = I3vrController.TouchPos.x.ToString("f2");
-            Touch_Yaw.text = I3vrController.TouchPos.y.ToString("f2");
-            TouchPosV2.Set(I3vrController.TouchPos.x, -I3vrController.TouchPos.y);
+            Touch_Pitch.text = controller.TouchPos.x.ToString("f2");
+            Touch_Yaw.text = controller.TouchPos.y.ToString("f2");
+            TouchPosV2.Set(controller.TouchPos.x, -controller.TouchPos.y);
 
-            if (I3vrController.TouchDown)
+            if (controller.IsTouching)
             {
                 Touch.gameObject.SetActive(true);
                 Touch.color = Green;
             }
-            if (I3vrController.TouchUp)
+            if (!controller.IsTouching)
             {
                 Touch.gameObject.SetActive(false);
             }
 
-            if (I3vrController.AppButtonDown)
+            if (controller.AppButtonDown)
             {
                 App.color = Green;
             }
-            if (I3vrController.AppButtonUp)
+            if (controller.AppButtonUp)
             {
                 App.color = Red;
             }
 
-            if (I3vrController.TriggerButtonDown)
+            if (controller.TriggerButtonDown)
             {
                 Trigger.color = Green;
             }
-            if (I3vrController.TriggerButtonUp)
+            if (controller.TriggerButtonUp)
             {
                 Trigger.color = Red;
             }
 
-            if (I3vrController.HomeButtonDown)
+            if (controller.HomeButtonDown)
             {
                 Home.color = Green;
             }
-            if (I3vrController.HomeButtonUp)
+            if (controller.HomeButtonUp)
             {
                 Home.color = Red;
             }
 
-            if (I3vrController.SwitchButtonDown)
+            if (controller.SwitchButtonDown)
             {
                 Switch.color = Green;
             }
-            if (I3vrController.SwitchButtonUp)
+            if (controller.SwitchButtonUp)
             {
                 Switch.color = Red;
             }
 
-            if (I3vrController.TouchGestureLeft)
+            if (controller.TouchGestureLeft)
             {
                 LeftGesture.gameObject.SetActive(true);
                 StartCoroutine(Conceal(LeftGesture.gameObject));
             }
-            if (I3vrController.TouchGestureRight)
+            if (controller.TouchGestureRight)
             {
                 RightGesture.gameObject.SetActive(true);
                 StartCoroutine(Conceal(RightGesture.gameObject));
             }
-            if (I3vrController.TouchGestureUp)
+            if (controller.TouchGestureUp)
             {
                 UpGesture.gameObject.SetActive(true);
                 StartCoroutine(Conceal(UpGesture.gameObject));
             }
-            if (I3vrController.TouchGestureDown)
+            if (controller.TouchGestureDown)
             {
                 DownGesture.gameObject.SetActive(true);
                 StartCoroutine(Conceal(DownGesture.gameObject));
             }
-           
+
             Touch.rectTransform.localPosition = TouchOrigin + TouchPosV2 * TouchPointMoveScope;
 
-            ConnectionStatus.text = I3vrController.ConnectionState.ToString();
+            ConnectionStatus.text = controller.ConnectionState.ToString();
+        }
 
-            if (Input.GetKeyDown(KeyCode.Escape))
+        void ShowFrame()
+        {
+            CurrentTime += Time.deltaTime;
+            if (CurrentTime > 1)
             {
-                Application.Quit();
+                if (I3vrControllerManager.I3vrControllerNumb == ControllerType.LeftAndRight)
+                {
+                    if (ControllerDataSource == DataSource.Right)
+                    {
+                        RightPreviouslyFrame = RightCurrenFrame;
+                        RightCurrenFrame = AndroidDoubleServiceProvider.rightFrame;
+                        Frame.text = (RightCurrenFrame - RightPreviouslyFrame).ToString();
+                    }
+                    else
+                    {
+                        LefrPreviouslyFrame = LeftCurrenFrame;
+                        LeftCurrenFrame = AndroidDoubleServiceProvider.leftFrame;
+                        Frame.text = (LeftCurrenFrame - LefrPreviouslyFrame).ToString();
+                    }
+                }
+                else
+                {
+                    RightPreviouslyFrame = RightCurrenFrame;
+                    RightCurrenFrame = AndroidServiceProvider.rightFrame;
+                    Frame.text = (RightCurrenFrame - RightPreviouslyFrame).ToString();
+                }
+                CurrentTime = 0;
             }
         }
 
@@ -173,4 +210,5 @@ namespace i3vr
             obj.gameObject.SetActive(false);
         }
     }
+
 }

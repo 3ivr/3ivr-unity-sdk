@@ -14,8 +14,21 @@ namespace i3vr
     /// </summary>
     public class ControllerOrientation : MonoBehaviour
     {
+        private I3vrController controller;
+
         public bool UseLateUpdate;
         public bool UseLocalOrientation = false;
+
+        public DataSource ControllerDataSource = DataSource.Right;
+
+        private void Start()
+        {
+            controller = I3vrControllerManager.I3vrRightController;
+            if (ControllerDataSource == DataSource.Left)
+            {
+                controller = I3vrControllerManager.I3vrLeftController;
+            }
+        }
 
         void Update()
         {
@@ -37,11 +50,11 @@ namespace i3vr
         {
             if (UseLocalOrientation)
             {
-                transform.localRotation = I3vrController.Orientation;
+                transform.localRotation = controller.Orientation;
             }
             else
             {
-                transform.rotation = I3vrController.Orientation;
+                transform.rotation = controller.Orientation;
             }
         }
     }
