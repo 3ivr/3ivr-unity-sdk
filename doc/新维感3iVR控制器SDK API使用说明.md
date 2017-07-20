@@ -5,37 +5,37 @@
 
 [2 Unity3D入门](#unity3d入门)
 
-  [2.1 先决条件](#先决条件)
+　[2.1 先决条件](#先决条件)
 
-  [2.2 导入SDK](#导入sdk)
+　[2.2 导入SDK](#导入sdk)
 
-  [2.3 启用I3vr控制器和UI的支持](#启用i3vr控制器和ui的支持)
+　[2.3 启用I3vr控制器和UI的支持](#启用i3vr控制器和ui的支持)
 
-  [2.4 示例场景](#示例场景)
+　[2.4 示例场景](#示例场景)
 
-  [2.5 发布设置](#发布设置)
+　[2.5 发布设置](#发布设置)
 
-  [2.6 3iVR控制器支持](#ivr控制器支持)
+　[2.6 3iVR控制器支持](#ivr控制器支持)
 
-    [2.6.1 Arm Model](#arm-model)
+　　[2.6.1 Arm Model](#arm-model)
 
-    [2.6.2 Input System](#input-system)
+　　[2.6.2 Input System](#input-system)
 
-    [2.6.3 Laser and reticle visualization](#laser-and-reticle-visualization)
+　　[2.6.3 Laser and reticle visualization](#laser-and-reticle-visualization)
 
-    [2.6.4 Controller Visualization](#controller-visualization)
+　　[2.6.4 Controller Visualization](#controller-visualization)
 
 [3 API参考](#api参考)
 
-  [3.1 I3vrController](#i3vrcontroller)
+　[3.1 I3vrController](#i3vrcontroller)
 
-  [3.2 I3vrArmModel](#i3vrarmmodel)
+　[3.2 I3vrArmModel](#i3vrarmmodel)
 
-  [3.3 I3vrArmModelOffsets](#i3vrarmmodeloffsets)
+　[3.3 I3vrArmModelOffsets](#i3vrarmmodeloffsets)
 
-  [3.4 I3vrLaserPointer](#i3vrlaserpointer)
+　[3.4 I3vrLaserPointer](#i3vrlaserpointer)
 
-  [3.5 I3vrControllerManager](#i3vrcontrollermanager)
+　[3.5 I3vrControllerManager](#i3vrcontrollermanager)
 
 [4 Appendices](#appendices)
 
