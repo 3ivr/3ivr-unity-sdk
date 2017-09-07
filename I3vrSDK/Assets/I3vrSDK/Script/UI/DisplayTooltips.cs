@@ -6,56 +6,57 @@
  */
 
 using UnityEngine;
-using System.Collections;
-using System;
 using UnityEngine.UI;
 
-public class DisplayTooltips : MonoBehaviour
+namespace i3vr
 {
-    private I3vrController controller;
-    private GameObject ButtonTooltips;
-    private Image TouchPadPos;
-    private Vector3 StartPoint;
-    private Vector3 TouchPosPoint;
-
-    public bool IsDisplayUI;
-    public float MinAngles_x;
-    public float MaxAngles_x;
-    public DataSource ControllerDataSource = DataSource.Right;
-
-    private void Awake()
+    public class DisplayTooltips : MonoBehaviour
     {
-        ButtonTooltips = transform.FindChild("Tooltip").FindChild("ButtonTooltip").gameObject;
-        TouchPadPos = transform.FindChild("Tooltip").FindChild("TouchPoint").GetComponent<Image>();
-        ButtonTooltips.SetActive(false);
-        StartPoint = TouchPadPos.rectTransform.localPosition;
-    }
-    private void Start()
-    {
-        controller = I3vrControllerManager.I3vrRightController;
-        if (ControllerDataSource == DataSource.Left)
+        public bool isDisplayUI;
+        public float minAngles_x;
+        public float maxAngles_x;
+        public bool isRightSource;
+
+        private I3vrController controller;
+        private GameObject ButtonTooltips;
+        private Image TouchPadPos;
+        private Vector3 StartPoint;
+        private Vector3 TouchPosPoint;
+
+        private void Awake()
         {
-            controller = I3vrControllerManager.I3vrLeftController;
+            ButtonTooltips = transform.FindChild("Tooltip").FindChild("ButtonTooltip").gameObject;
+            TouchPadPos = transform.FindChild("Tooltip").FindChild("TouchPoint").GetComponent<Image>();
+            ButtonTooltips.SetActive(false);
+            StartPoint = TouchPadPos.rectTransform.localPosition;
         }
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        if (IsDisplayUI)
+        private void Start()
         {
-            if (transform.localRotation.eulerAngles.x < MaxAngles_x && transform.localRotation.eulerAngles.x > MinAngles_x)
+            controller = I3vrControllerManager.RightController;
+            if (!isRightSource)
             {
-                ButtonTooltips.SetActive(true);
+                controller = I3vrControllerManager.LeftController;
             }
-            else ButtonTooltips.SetActive(false);
         }
-        if (controller.IsTouching)
+
+        // Update is called once per frame
+        void Update()
         {
-            TouchPadPos.gameObject.SetActive(true);
-            TouchPosPoint.Set(controller.TouchPos.x, -controller.TouchPos.y, 0);
-            TouchPadPos.rectTransform.localPosition = StartPoint + TouchPosPoint * 108;
+            if (isDisplayUI)
+            {
+                if (transform.localRotation.eulerAngles.x < maxAngles_x && transform.localRotation.eulerAngles.x > minAngles_x)
+                {
+                    ButtonTooltips.SetActive(true);
+                }
+                else ButtonTooltips.SetActive(false);
+            }
+            if (controller.IsTouching)
+            {
+                TouchPadPos.gameObject.SetActive(true);
+                TouchPosPoint.Set(controller.TouchPos.x, -controller.TouchPos.y, 0);
+                TouchPadPos.rectTransform.localPosition = StartPoint + TouchPosPoint * 108;
+            }
+            else TouchPadPos.gameObject.SetActive(false);
         }
-        else TouchPadPos.gameObject.SetActive(false);
     }
 }

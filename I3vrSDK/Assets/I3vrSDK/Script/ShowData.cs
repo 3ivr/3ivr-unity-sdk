@@ -4,80 +4,95 @@
  * Author: Lucas(Wu Pengcheng)
  * Date  : 2017/06/19 08:08
  */
-
+//#if UNITY_ANDROID&&!UNITY_EDITOR
 using UnityEngine;
 using System.Collections;
 using UnityEngine.UI;
+
 namespace i3vr
 {
     public class ShowData : MonoBehaviour
     {
-        private Image Touch, Home, App, Switch, Trigger, LeftGesture, RightGesture, UpGesture, DownGesture;
-        private Text Rotation_Pitch, Rotation_Yaw, Rotation_Roll, Gyro_Pitch, Gyro_Yaw, Gyro_Roll, Accele_Pitch, Accele_Yaw, Accele_Roll, Touch_Pitch,
-        Touch_Yaw, ConnectionStatus, Frame;
-        private Color Green = Color.green;
-        private Color Red = Color.red;
-        private Transform ButtonState, RawData;
-        private Vector2 TouchOrigin;
-        private float TouchPointMoveScope = 243;
-        private Vector2 TouchPosV2 = Vector2.zero;
-        private Vector3 RawOriV3 = Vector3.zero;
+        private Image touch, _return, app, home, trigger, leftGesture, rightGesture, upGesture, downGesture;
+        private Text rotation_Pitch, rotation_Yaw, rotation_Roll, gyro_Pitch, gyro_Yaw, gyro_Roll, accele_Pitch, accele_Yaw, accele_Roll, touch_Pitch,
+        touch_Yaw, connectionStatus, frame, deviceName, macAddress, manufacturerName, modelNumber, serialNumber, hardwareRevision, firmwareRevision, softwareRevision;
+        private Color green = Color.green;
+        private Color red = Color.red;
+        private Transform buttonState, rawData, deviceInfo;
+        private Vector2 touchOrigin;
+        private float touchPointMoveScope = 243;
+        private Vector2 touchPosV2 = Vector2.zero;
+        private Vector3 rawOriV3 = Vector3.zero;
         private WaitForSeconds waitForSeconds = new WaitForSeconds(0.1f);
-        private float CurrentTime;
+        private float currentTime;
         private I3vrController controller;
-        private long RightPreviouslyFrame;
-        private long RightCurrenFrame;
-        private long LefrPreviouslyFrame;
-        private long LeftCurrenFrame;
+        private long rightPreviouslyFrame;
+        private long rightCurrenFrame;
+        private long lefrPreviouslyFrame;
+        private long leftCurrenFrame;
 
-        public DataSource ControllerDataSource = DataSource.Right;
+        public bool isRightSource;
+
         // Use this for initialization
         void Start()
         {
-            controller = I3vrControllerManager.I3vrRightController;
-            if (ControllerDataSource == DataSource.Left)
-            {
-                controller = I3vrControllerManager.I3vrLeftController;
+            controller = I3vrControllerManager.RightController;
+            if (!isRightSource) {
+                controller = I3vrControllerManager.LeftController;
             }
 
-            ButtonState = transform.FindChild("ButtonState");
-            RawData = transform.FindChild("RawData");
+            buttonState = transform.FindChild("ButtonState");
+            rawData = transform.FindChild("RawData");
+            deviceInfo = rawData.FindChild("DeviceInfo");
 
-            Touch = ButtonState.FindChild("Front").FindChild("Touch").GetComponent<Image>();
-            Home = ButtonState.FindChild("Front").FindChild("Home").GetComponent<Image>();
-            App = ButtonState.FindChild("Front").FindChild("App").GetComponent<Image>();
-            Switch = ButtonState.FindChild("Front").FindChild("Switch").GetComponent<Image>();
-            Trigger = ButtonState.FindChild("Side").FindChild("Trigger").GetComponent<Image>();
-            LeftGesture = ButtonState.FindChild("Front").FindChild("LeftGesture").GetComponent<Image>();
-            RightGesture = ButtonState.FindChild("Front").FindChild("RightGesture").GetComponent<Image>();
-            UpGesture = ButtonState.FindChild("Front").FindChild("UpGesture").GetComponent<Image>();
-            DownGesture = ButtonState.FindChild("Front").FindChild("DownGesture").GetComponent<Image>();
+            deviceName = deviceInfo.FindChild("DeviceName").FindChild("Input").GetComponent<Text>();
+            macAddress = deviceInfo.FindChild("MacAddress").FindChild("Input").GetComponent<Text>();
+            manufacturerName = deviceInfo.FindChild("ManufacturerName").FindChild("Input").GetComponent<Text>();
+            modelNumber = deviceInfo.FindChild("ModelNumber").FindChild("Input").GetComponent<Text>();
+            serialNumber = deviceInfo.FindChild("SerialNumber").FindChild("Input").GetComponent<Text>();
+            hardwareRevision = deviceInfo.FindChild("HardwareRevision").FindChild("Input").GetComponent<Text>();
+            firmwareRevision = deviceInfo.FindChild("FirmwareRevision").FindChild("Input").GetComponent<Text>();
+            softwareRevision = deviceInfo.FindChild("SoftwareRevision").FindChild("Input").GetComponent<Text>();
 
-            Rotation_Pitch = RawData.FindChild("Rotation").FindChild("Pitch").FindChild("Input").GetComponent<Text>();
-            Rotation_Yaw = RawData.FindChild("Rotation").FindChild("Yaw").FindChild("Input").GetComponent<Text>();
-            Rotation_Roll = RawData.FindChild("Rotation").FindChild("Roll").FindChild("Input").GetComponent<Text>();
+            touch = buttonState.FindChild("Front").FindChild("Touch").GetComponent<Image>();
+            _return = buttonState.FindChild("Front").FindChild("Return").GetComponent<Image>();
+            app = buttonState.FindChild("Front").FindChild("App").GetComponent<Image>();
+            home = buttonState.FindChild("Front").FindChild("Home").GetComponent<Image>();
+            trigger = buttonState.FindChild("Side").FindChild("Trigger").GetComponent<Image>();
+            leftGesture = buttonState.FindChild("Front").FindChild("LeftGesture").GetComponent<Image>();
+            rightGesture = buttonState.FindChild("Front").FindChild("RightGesture").GetComponent<Image>();
+            upGesture = buttonState.FindChild("Front").FindChild("UpGesture").GetComponent<Image>();
+            downGesture = buttonState.FindChild("Front").FindChild("DownGesture").GetComponent<Image>();
 
-            Gyro_Pitch = RawData.FindChild("Gyro").FindChild("Pitch").FindChild("Input").GetComponent<Text>();
-            Gyro_Yaw = RawData.FindChild("Gyro").FindChild("Yaw").FindChild("Input").GetComponent<Text>();
-            Gyro_Roll = RawData.FindChild("Gyro").FindChild("Roll").FindChild("Input").GetComponent<Text>();
+            rotation_Pitch = rawData.FindChild("Rotation").FindChild("Pitch").FindChild("Input").GetComponent<Text>();
+            rotation_Yaw = rawData.FindChild("Rotation").FindChild("Yaw").FindChild("Input").GetComponent<Text>();
+            rotation_Roll = rawData.FindChild("Rotation").FindChild("Roll").FindChild("Input").GetComponent<Text>();
 
-            Accele_Pitch = RawData.FindChild("Accele").FindChild("Pitch").FindChild("Input").GetComponent<Text>();
-            Accele_Yaw = RawData.FindChild("Accele").FindChild("Yaw").FindChild("Input").GetComponent<Text>();
-            Accele_Roll = RawData.FindChild("Accele").FindChild("Roll").FindChild("Input").GetComponent<Text>();
+            gyro_Pitch = rawData.FindChild("Gyro").FindChild("Pitch").FindChild("Input").GetComponent<Text>();
+            gyro_Yaw = rawData.FindChild("Gyro").FindChild("Yaw").FindChild("Input").GetComponent<Text>();
+            gyro_Roll = rawData.FindChild("Gyro").FindChild("Roll").FindChild("Input").GetComponent<Text>();
 
-            Touch_Pitch = RawData.FindChild("Touch").FindChild("Pitch").FindChild("Input").GetComponent<Text>();
-            Touch_Yaw = RawData.FindChild("Touch").FindChild("Yaw").FindChild("Input").GetComponent<Text>();
+            accele_Pitch = rawData.FindChild("Accele").FindChild("Pitch").FindChild("Input").GetComponent<Text>();
+            accele_Yaw = rawData.FindChild("Accele").FindChild("Yaw").FindChild("Input").GetComponent<Text>();
+            accele_Roll = rawData.FindChild("Accele").FindChild("Roll").FindChild("Input").GetComponent<Text>();
 
-            ConnectionStatus = RawData.FindChild("ConnectionStatus").GetComponent<Text>();
-            TouchOrigin = Touch.rectTransform.localPosition;
+            touch_Pitch = rawData.FindChild("Touch").FindChild("Pitch").FindChild("Input").GetComponent<Text>();
+            touch_Yaw = rawData.FindChild("Touch").FindChild("Yaw").FindChild("Input").GetComponent<Text>();
 
-            Frame = transform.FindChild("Frame").FindChild("Input").GetComponent<Text>();
+            connectionStatus = rawData.FindChild("ConnectionStatus").GetComponent<Text>();
+            touchOrigin = touch.rectTransform.localPosition;
+
+            frame = transform.FindChild("Frame").FindChild("Input").GetComponent<Text>();
         }
 
         // Update is called once per frame
         void Update()
         {
             UpdateState();
+            if (Input.GetKeyDown(KeyCode.Escape))
+            {
+                Application.Quit();
+            }
         }
 
         void UpdateState()
@@ -85,122 +100,117 @@ namespace i3vr
             ShowFrame();
 
             Quaternion RawOriQua = controller.Orientation;
-            RawOriV3 = RawOriQua.eulerAngles;
-            Rotation_Pitch.text = RawOriV3.x.ToString("f2");
-            Rotation_Yaw.text = RawOriV3.y.ToString("f2");
-            Rotation_Roll.text = RawOriV3.z.ToString("f2");
+            rawOriV3 = RawOriQua.eulerAngles;
+            rotation_Pitch.text = rawOriV3.x.ToString("f2");
+            rotation_Yaw.text = rawOriV3.y.ToString("f2");
+            rotation_Roll.text = rawOriV3.z.ToString("f2");
 
-            Gyro_Pitch.text = controller.Gyro.x.ToString("f2");
-            Gyro_Yaw.text = controller.Gyro.y.ToString("f2");
-            Gyro_Roll.text = controller.Gyro.z.ToString("f2");
+            gyro_Pitch.text = controller.Gyro.x.ToString("f2");
+            gyro_Yaw.text = controller.Gyro.y.ToString("f2");
+            gyro_Roll.text = controller.Gyro.z.ToString("f2");
 
-            Accele_Pitch.text = controller.Accel.x.ToString("f2");
-            Accele_Yaw.text = controller.Accel.y.ToString("f2");
-            Accele_Roll.text = controller.Accel.z.ToString("f2");
+            accele_Pitch.text = controller.Accel.x.ToString("f2");
+            accele_Yaw.text = controller.Accel.y.ToString("f2");
+            accele_Roll.text = controller.Accel.z.ToString("f2");
 
-            Touch_Pitch.text = controller.TouchPos.x.ToString("f2");
-            Touch_Yaw.text = controller.TouchPos.y.ToString("f2");
-            TouchPosV2.Set(controller.TouchPos.x, -controller.TouchPos.y);
+            touch_Pitch.text = controller.TouchPos.x.ToString("f2");
+            touch_Yaw.text = controller.TouchPos.y.ToString("f2");
+            touchPosV2.Set(controller.TouchPos.x, -controller.TouchPos.y);
 
             if (controller.IsTouching)
             {
-                Touch.gameObject.SetActive(true);
-                Touch.color = Green;
+                touch.gameObject.SetActive(true);
+                touch.color = green;
             }
             if (!controller.IsTouching)
             {
-                Touch.gameObject.SetActive(false);
+                touch.gameObject.SetActive(false);
             }
 
             if (controller.AppButtonDown)
             {
-                App.color = Green;
+                app.color = green;
             }
             if (controller.AppButtonUp)
             {
-                App.color = Red;
+                app.color = red;
             }
 
             if (controller.TriggerButtonDown)
             {
-                Trigger.color = Green;
+                trigger.color = green;
             }
             if (controller.TriggerButtonUp)
             {
-                Trigger.color = Red;
+                trigger.color = red;
+            }
+
+            if (controller.ReturnButtonDown)
+            {
+                _return.color = green;
+            }
+            if (controller.ReturnButtonUp)
+            {
+                _return.color = red;
             }
 
             if (controller.HomeButtonDown)
             {
-                Home.color = Green;
+                home.color = green;
             }
             if (controller.HomeButtonUp)
             {
-                Home.color = Red;
-            }
-
-            if (controller.SwitchButtonDown)
-            {
-                Switch.color = Green;
-            }
-            if (controller.SwitchButtonUp)
-            {
-                Switch.color = Red;
+                home.color = red;
             }
 
             if (controller.TouchGestureLeft)
             {
-                LeftGesture.gameObject.SetActive(true);
-                StartCoroutine(Conceal(LeftGesture.gameObject));
+                leftGesture.gameObject.SetActive(true);
+                StartCoroutine(Conceal(leftGesture.gameObject));
             }
             if (controller.TouchGestureRight)
             {
-                RightGesture.gameObject.SetActive(true);
-                StartCoroutine(Conceal(RightGesture.gameObject));
+                rightGesture.gameObject.SetActive(true);
+                StartCoroutine(Conceal(rightGesture.gameObject));
             }
             if (controller.TouchGestureUp)
             {
-                UpGesture.gameObject.SetActive(true);
-                StartCoroutine(Conceal(UpGesture.gameObject));
+                upGesture.gameObject.SetActive(true);
+                StartCoroutine(Conceal(upGesture.gameObject));
             }
             if (controller.TouchGestureDown)
             {
-                DownGesture.gameObject.SetActive(true);
-                StartCoroutine(Conceal(DownGesture.gameObject));
+                downGesture.gameObject.SetActive(true);
+                StartCoroutine(Conceal(downGesture.gameObject));
             }
 
-            Touch.rectTransform.localPosition = TouchOrigin + TouchPosV2 * TouchPointMoveScope;
+            touch.rectTransform.localPosition = touchOrigin + touchPosV2 * touchPointMoveScope;
 
-            ConnectionStatus.text = controller.ConnectionState.ToString();
+            connectionStatus.text = controller.ConnectionState.ToString();
+
+            ShowInfo();
+
+            //Debug.Log(AndroidServiceControllerProvider.GetInterval(0));
         }
 
         void ShowFrame()
         {
-            CurrentTime += Time.deltaTime;
-            if (CurrentTime > 1)
+            currentTime += Time.deltaTime;
+            if (currentTime > 1)
             {
-                if (I3vrControllerManager.I3vrControllerNumb == ControllerType.LeftAndRight)
+                if (isRightSource)
                 {
-                    if (ControllerDataSource == DataSource.Right)
-                    {
-                        RightPreviouslyFrame = RightCurrenFrame;
-                        RightCurrenFrame = AndroidDoubleServiceProvider.rightFrame;
-                        Frame.text = (RightCurrenFrame - RightPreviouslyFrame).ToString();
-                    }
-                    else
-                    {
-                        LefrPreviouslyFrame = LeftCurrenFrame;
-                        LeftCurrenFrame = AndroidDoubleServiceProvider.leftFrame;
-                        Frame.text = (LeftCurrenFrame - LefrPreviouslyFrame).ToString();
-                    }
+                    rightPreviouslyFrame = rightCurrenFrame;
+                    rightCurrenFrame = AndroidServiceControllerProvider.GetFrameNumber(0);
+                    frame.text = (rightCurrenFrame - rightPreviouslyFrame).ToString();
                 }
                 else
                 {
-                    RightPreviouslyFrame = RightCurrenFrame;
-                    RightCurrenFrame = AndroidServiceProvider.rightFrame;
-                    Frame.text = (RightCurrenFrame - RightPreviouslyFrame).ToString();
+                    lefrPreviouslyFrame = leftCurrenFrame;
+                    leftCurrenFrame = AndroidServiceControllerProvider.GetFrameNumber(1);
+                    frame.text = (leftCurrenFrame - lefrPreviouslyFrame).ToString();
                 }
-                CurrentTime = 0;
+                currentTime = 0;
             }
         }
 
@@ -209,6 +219,31 @@ namespace i3vr
             yield return waitForSeconds;
             obj.gameObject.SetActive(false);
         }
-    }
 
+        void ShowInfo()
+        {
+            if (controller.ConnectionState == I3vrConnectionState.Connected)
+            {
+                if (isRightSource)
+                {
+                    SetDoubleDeviceIndex(0);
+                }
+                else
+                    SetDoubleDeviceIndex(1);
+            }
+        }
+
+        void SetDoubleDeviceIndex(int index)
+        {
+            deviceName.text = AndroidServiceControllerProvider.GetDeviceName();
+            macAddress.text = AndroidServiceControllerProvider.GetMacAddress(index);
+            manufacturerName.text = AndroidServiceControllerProvider.GetManufacturerName(index);
+            modelNumber.text = AndroidServiceControllerProvider.GetModelNumber(index);
+            serialNumber.text = AndroidServiceControllerProvider.GetSerialNumber(index);
+            hardwareRevision.text = AndroidServiceControllerProvider.GetHardwareRevision(index);
+            firmwareRevision.text = AndroidServiceControllerProvider.GetFirmwareRevision(index);
+            softwareRevision.text = AndroidServiceControllerProvider.GetSoftwareRevision(index);
+        }
+    }
 }
+//#endif

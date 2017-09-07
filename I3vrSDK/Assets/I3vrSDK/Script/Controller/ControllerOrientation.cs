@@ -13,26 +13,24 @@ namespace i3vr
     /// Rotates a transform to match the controller orientation
     /// </summary>
     public class ControllerOrientation : MonoBehaviour
-    {
+    {      
+        public bool isRightSource;
+        public bool useLateUpdate;
+        public bool useLocalOrientation = false;
+
         private I3vrController controller;
-
-        public bool UseLateUpdate;
-        public bool UseLocalOrientation = false;
-
-        public DataSource ControllerDataSource = DataSource.Right;
 
         private void Start()
         {
-            controller = I3vrControllerManager.I3vrRightController;
-            if (ControllerDataSource == DataSource.Left)
-            {
-                controller = I3vrControllerManager.I3vrLeftController;
+            controller = I3vrControllerManager.RightController;
+            if (!isRightSource) {
+                controller = I3vrControllerManager.LeftController;
             }
         }
 
         void Update()
         {
-            if (!UseLateUpdate)
+            if (!useLateUpdate)
             {
                 UpdateOrient();
             }
@@ -40,7 +38,7 @@ namespace i3vr
 
         void LateUpdate()
         {
-            if (UseLateUpdate)
+            if (useLateUpdate)
             {
                 UpdateOrient();
             }
@@ -48,7 +46,7 @@ namespace i3vr
 
         void UpdateOrient()
         {
-            if (UseLocalOrientation)
+            if (useLocalOrientation)
             {
                 transform.localRotation = controller.Orientation;
             }

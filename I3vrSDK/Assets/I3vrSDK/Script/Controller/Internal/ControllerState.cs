@@ -31,12 +31,12 @@ namespace i3vr
         internal bool appButtonState = false;
         internal bool appButtonDown = false;
         internal bool appButtonUp = false;
+        internal bool returnButtonState = false;
+        internal bool returnButtonDown = false;
+        internal bool returnButtonUp = false;
         internal bool homeButtonState = false;
         internal bool homeButtonDown = false;
         internal bool homeButtonUp = false;
-        internal bool switchButtonState = false;
-        internal bool switchButtonDown = false;
-        internal bool switchButtonUp = false;
         internal string errorDetails = "";
         // Indicates whether or not a headset recenter was requested.
         // This is up to the ControllerProvider implementation to decide.

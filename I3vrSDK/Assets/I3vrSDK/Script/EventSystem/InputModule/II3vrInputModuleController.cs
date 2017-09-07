@@ -5,7 +5,6 @@
  * Date  : 2017/07/04 17:05
  */
 
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;

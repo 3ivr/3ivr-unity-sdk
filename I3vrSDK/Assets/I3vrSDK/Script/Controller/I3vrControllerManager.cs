@@ -6,73 +6,76 @@
  */
 
 using UnityEngine;
-using UnityEngine.Events;
-using i3vr;
-public enum ControllerType
+
+namespace i3vr
 {
-    Single,
-    LeftAndRight,
-}
-
-public enum DataSource
-{
-    Right,
-    Left,
-}
-
-public class I3vrControllerManager : MonoBehaviour
-{  
-    private static I3vrController _rightHand, _leftHand;
-    private static ControllerType _controllerNumb;
-
-    public ControllerType SetControllerType = ControllerType.Single;
-    public UnityEvent BothControllerEvent;
-
-    public static ControllerType I3vrControllerNumb
+    public class I3vrControllerManager : MonoBehaviour
     {
-        get
+        private static Camera _mainCamera;
+        private static I3vrController _rightController;
+        private static I3vrController _leftController;
+
+        public Camera SetMainCamera;
+        public I3vrController _SetRightController;
+        public I3vrController _SetLeftController;
+
+        public static float angle;
+        public static I3vrController RightController
         {
-            return _controllerNumb;
+            get
+            {
+                return _rightController;
+            }
         }
-    }
-
-    public static I3vrController I3vrRightController
-    {
-        get
+        public static I3vrController LeftController
         {
-            return _rightHand;
+            get
+            {
+                return _leftController;
+            }
         }
-    }
 
-    public static I3vrController I3vrLeftController
-    {
-        get
+        public static Camera MainCamera
         {
-            return _leftHand;
+            get
+            {
+                return _mainCamera;
+            }
         }
-    }
 
-    void Awake()
-    {
-        _controllerNumb = SetControllerType;
-    }
-    
-    private void Start()
-    {
-        _rightHand = GameObject.FindWithTag("RightController").GetComponent<I3vrController>();
-        if (I3vrControllerNumb == ControllerType.LeftAndRight)
+        void Awake()
         {
-            BothControllerEvent.Invoke();
-            _leftHand = GameObject.FindWithTag("LeftController").GetComponent<I3vrController>();
-        }
-    }
+            if (_SetRightController || _SetLeftController)
+            {
+                _rightController = _SetRightController;
+                _leftController = _SetLeftController;
+            }
+            else Debug.LogError("Not Set Controller");
 
-    private void OnApplicationQuit()
-    {
-        if (I3vrControllerNumb == ControllerType.LeftAndRight)
-        {
-            AndroidDoubleServiceProvider.BleDestroy();
+            if (SetMainCamera)
+            {
+                _mainCamera = SetMainCamera;
+            }
+            else Debug.LogError("Not Set MainCamera");
         }
-        else AndroidServiceProvider.BleDestroy();
+
+        private void OnApplicationQuit()
+        {
+            AndroidServiceControllerProvider.OnStop();
+        }
+
+        private void OnApplicationFocus(bool focus)
+        {
+            if (focus)
+            {
+                AndroidServiceControllerProvider.GetRightYawRotation();
+                AndroidServiceControllerProvider.GetLeftYawRotation();
+            }
+            if (!focus)
+            {
+                AndroidServiceControllerProvider.ResetRightYawRotation();
+                AndroidServiceControllerProvider.ResetLeftYawRotation();
+            }
+        }
     }
 }

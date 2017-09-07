@@ -18,10 +18,6 @@ namespace i3vr
         void OnResume();
 
         /// Reads the controller's current state and stores it in outState.
-        void ReadState(ControllerState outState);
-
-        void RightReadState(ControllerState outState);
-
-        void LeftReadState(ControllerState outState);
+        void ReadState(ControllerState outState,bool isRightController);
     }
 }

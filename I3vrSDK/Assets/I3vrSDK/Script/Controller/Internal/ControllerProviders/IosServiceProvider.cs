@@ -32,6 +32,11 @@ class IosServiceProvider : IControllerProvider
         outState.connectionState = I3vrConnectionState.Error;
     }
 
+    public void ReadState(ControllerState outState, bool bo)
+    {
+        throw new NotImplementedException();
+    }
+
     public void RightReadState(ControllerState outState)
     {
         //throw new NotImplementedException();

@@ -5,9 +5,7 @@
  * Date  : 2017/07/04 17:05
  */
 
-using UnityEngine;
 using UnityEngine.EventSystems;
-using System.Collections;
 
 /// This script extends the standard Unity EventSystem events with I3vr specific events.
 public static class I3vrExecuteEventsExtension

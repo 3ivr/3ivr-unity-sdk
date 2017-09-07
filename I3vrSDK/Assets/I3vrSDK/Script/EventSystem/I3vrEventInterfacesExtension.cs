@@ -10,7 +10,6 @@ using UnityEngine.EventSystems;
 /// Interface to implement if you wish to receive OnI3vrPointerHover callbacks.
 public interface II3vrPointerHoverHandler : IEventSystemHandler
 {
-
     /// Called when pointer is hovering over GameObject.
     void OnI3vrPointerHover(PointerEventData eventData);
 }
