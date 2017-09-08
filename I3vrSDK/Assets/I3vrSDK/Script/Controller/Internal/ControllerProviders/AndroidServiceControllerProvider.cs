@@ -47,43 +47,24 @@ namespace i3vr
         private const int I3VR_CONTROLLER_HANDEDNESS_LEFT = 1;
 
         private static AndroidJavaClass javaUnityPlayer;
-        private static AndroidJavaObject currentActivity;
-        private static AndroidJavaObject androidPlugin;
-        private static AndroidJavaObject androidService;
-        private static AndroidJavaObject androidAPI;
+        private static AndroidJavaObject currentActivity, androidPlugin, androidService, androidAPI;
+        private static Vector3 rightYawRotation = Vector3.zero, leftYawRotation = Vector3.zero;
 
-        private float[] rightRawOri;
-        private float[] rightRawAccel;
-        private float[] rightRawGyro;
-        private float[] rightTouchPos;
-        private float[] leftRawOri;
-        private float[] leftRawAccel;
-        private float[] leftRawGyro;
-        private float[] leftTouchPos;
+        private float[] rightRawOri, rightRawAccel, rightRawGyro, rightTouchPos, leftRawOri, leftRawAccel, leftRawGyro, leftTouchPos;
 
-        private Quaternion rightrawOriQua = Quaternion.identity;
-        private Vector3 rightrawAccelV3 = Vector3.zero;
-        private Vector3 rightrawGyrolV3 = Vector3.zero;
-        private Vector2 righttouchPosV2 = Vector2.zero;
-        private Quaternion leftrawOriQua = Quaternion.identity;
-        private Vector3 leftrawAccelV3 = Vector3.zero;
-        private Vector3 leftrawGyrolV3 = Vector3.zero;
-        private Vector2 lefttouchPosV2 = Vector2.zero;
+        private Quaternion rightrawOriQua = Quaternion.identity, leftrawOriQua = Quaternion.identity;
+        private Vector3 rightrawAccelV3 = Vector3.zero, leftrawAccelV3 = Vector3.zero;
+        private Vector3 rightrawGyrolV3 = Vector3.zero, leftrawGyrolV3 = Vector3.zero;
+        private Vector2 righttouchPosV2 = Vector2.zero, lefttouchPosV2 = Vector2.zero;
 
-        private MutablePose3D rightpose3d = new MutablePose3D();
-        private Quaternion rightlastRawOrientation = Quaternion.identity;
-        private MutablePose3D leftpose3d = new MutablePose3D();
-        private Quaternion leftlastRawOrientation = Quaternion.identity;
+        private MutablePose3D rightpose3d = new MutablePose3D(), leftpose3d = new MutablePose3D();
+        private Quaternion rightlastRawOrientation = Quaternion.identity, leftlastRawOrientation = Quaternion.identity;
         private bool isBind = false;
-        private bool isRightReadyRecentered = true;
-        private bool isLeftReadyRecentered = true;
-        private bool initialRightRecenterDone = false;
-        private bool initialLeftRecenterDone = false;
-
-        private static Vector3 leftYawRotation = Vector3.zero;
-        private static Vector3 rightYawRotation = Vector3.zero;
-
-        private static bool adsa=true;
+        private bool isRightReadyRecentered = true, isLeftReadyRecentered = true;
+        private bool initialRightRecenterDone = false, initialLeftRecenterDone = false;
+        private long currentRightFrameNumber, currentLeftFrameNumber;
+        private long previouslyRightFrameNumber, previouslyLeftFrameNumber;
+        private float rightDuration, leftDuration;
 
         internal AndroidServiceControllerProvider(string deviceName = "i3vr")
         {
@@ -92,8 +73,6 @@ namespace i3vr
             androidPlugin = new AndroidJavaObject(I3VR_CONTROLLER_CLASS_NAME);
             androidService = androidPlugin.CallStatic<AndroidJavaObject>("createControllerService");
             androidAPI = new AndroidJavaObject(I3VR_UnityAPI_CLASS_NAME);
-            //InitDeviceInfos(false, null, "31:13:11:09:00:ED", "31:13:11:09:00:XX");//launcher
-            //InitDeviceInfos(false, null, "33:33:33:33:33:33", "31:13:11:09:00:XX");//launcher
             InitDeviceInfos(false, deviceName, null, null);//launcher
             //OnBindService("com.I3vr.I3vrSDK");//app
             OnStart();//launcher
@@ -139,28 +118,30 @@ namespace i3vr
                 {
                     rightRawOri = I3vrControllerOrientation(I3VR_CONTROLLER_INDEX_RIGHT);
                     rightrawOriQua.Set(rightRawOri[0], rightRawOri[1], rightRawOri[2], rightRawOri[3]);
-                    
+
                     rightpose3d.Set(Vector3.zero, rightrawOriQua);
                     rightpose3d.SetRightHanded(rightpose3d.Matrix);
                     rightlastRawOrientation = rightpose3d.Orientation;
-                    if ((!initialRightRecenterDone || outState.recentered)&& !rightlastRawOrientation.Equals(Quaternion.identity))
+                    if ((!initialRightRecenterDone || outState.recentered) && !rightlastRawOrientation.Equals(Quaternion.identity))
                     {
-                        initialRightRecenterDone =true;
+                        initialRightRecenterDone = true;
                         isRightReadyRecentered = false;
                         outState.headsetRecenterRequested = true;
                         rightYawRotation = I3vrControllerManager.MainCamera.transform.rotation.eulerAngles - rightpose3d.Orientation.eulerAngles;
                         rightYawRotation = Vector3.up * rightYawRotation.y;
                         Vector3 RootRotation = Vector3.zero;
-                        if (I3vrControllerManager.MainCamera.transform.root) {
+                        if (I3vrControllerManager.MainCamera.transform.root)
+                        {
                             if (I3vrControllerManager.MainCamera.transform.root.rotation != Quaternion.identity)
                             {
-								RootRotation = I3vrControllerManager.MainCamera.transform.root.rotation.eulerAngles.y*Vector3.up;
+                                RootRotation = I3vrControllerManager.MainCamera.transform.root.rotation.eulerAngles.y * Vector3.up;
                             }
                             rightYawRotation = Vector3.up * rightYawRotation.y - RootRotation;
                         }
+
                     }
                     outState.orientation = Quaternion.Euler(rightYawRotation) * rightlastRawOrientation;
-                    
+
                     rightRawAccel = I3vrControllerAccel(I3VR_CONTROLLER_INDEX_RIGHT);
                     rightrawAccelV3.Set(rightRawAccel[0], rightRawAccel[1], -rightRawAccel[2]);
                     outState.accel = rightrawAccelV3;
@@ -195,7 +176,7 @@ namespace i3vr
                     leftpose3d.Set(Vector3.zero, leftrawOriQua);
                     leftpose3d.SetRightHanded(leftpose3d.Matrix);
                     leftlastRawOrientation = leftpose3d.Orientation;
-                    if ((!initialLeftRecenterDone||outState.recentered) && !leftlastRawOrientation.Equals(Quaternion.identity))
+                    if ((!initialLeftRecenterDone || outState.recentered) && !leftlastRawOrientation.Equals(Quaternion.identity))
                     {
                         initialLeftRecenterDone = true;
                         isLeftReadyRecentered = false;
@@ -209,7 +190,7 @@ namespace i3vr
                             {
                                 RootRotation = I3vrControllerManager.MainCamera.transform.root.rotation.eulerAngles.y * Vector3.up;
                             }
-                            leftYawRotation = Vector3.up * rightYawRotation.y - RootRotation;
+                            leftYawRotation = Vector3.up * leftYawRotation.y - RootRotation;
                         }
                     }
                     outState.orientation = Quaternion.Euler(leftYawRotation) * leftlastRawOrientation;
@@ -297,7 +278,7 @@ namespace i3vr
 
         public static void ResetRightYawRotation()
         {
-            Vector3 RootRotation = Vector3.zero;    
+            Vector3 RootRotation = Vector3.zero;
             if (I3vrControllerManager.MainCamera.transform.root)
             {
                 RootRotation = I3vrControllerManager.MainCamera.transform.root.rotation.eulerAngles;
@@ -309,7 +290,7 @@ namespace i3vr
 
         public static void ResetLeftYawRotation()
         {
-            Vector3 RootRotation = Vector3.zero;    
+            Vector3 RootRotation = Vector3.zero;
             if (I3vrControllerManager.MainCamera.transform.root)
             {
                 RootRotation = I3vrControllerManager.MainCamera.transform.root.rotation.eulerAngles;
@@ -433,9 +414,38 @@ namespace i3vr
                 case I3VR_CONTROLLER_CONNECTING:
                     return I3vrConnectionState.Connecting;
                 case I3VR_CONTROLLER_CONNECTED:
-                    return I3vrConnectionState.Connected;
+                    return IsDisconnected(index) ? I3vrConnectionState.Disconnected : I3vrConnectionState.Connected;
                 default:
                     return I3vrConnectionState.Error;
+            }
+        }
+
+
+
+        private bool IsDisconnected(int index)
+        {
+            switch (index)
+            {
+                case I3VR_CONTROLLER_INDEX_LEFT:
+                    previouslyRightFrameNumber = currentRightFrameNumber;
+                    currentRightFrameNumber = GetFrameNumber(index);
+                    if (!previouslyRightFrameNumber.Equals(currentRightFrameNumber))
+                    {
+                        rightDuration = 0;
+                        return false;
+                    }
+                    rightDuration += Time.deltaTime;
+                    return rightDuration > 0.2f ? true : false;
+                default:
+                    previouslyLeftFrameNumber = currentLeftFrameNumber;
+                    currentLeftFrameNumber = GetFrameNumber(index);
+                    if (!previouslyLeftFrameNumber.Equals(currentLeftFrameNumber))
+                    {
+                        leftDuration = 0;
+                        return false;
+                    }
+                    leftDuration += Time.deltaTime;
+                    return leftDuration > 0.2f ? true : false;
             }
         }
 
