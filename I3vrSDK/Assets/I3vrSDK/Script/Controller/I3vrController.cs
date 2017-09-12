@@ -7,6 +7,7 @@
 
 using UnityEngine;
 using System.Collections;
+using System;
 
 namespace i3vr
 {
@@ -76,6 +77,7 @@ namespace i3vr
         private ControllerState controllerState = new ControllerState();
         private IEnumerator controllerUpdate;
         private WaitForEndOfFrame waitForEndOfFrame = new WaitForEndOfFrame();
+        private Vector2 touchPosCentered = Vector2.zero;
 
         [HideInInspector]
         public I3vrController instance;
@@ -85,6 +87,7 @@ namespace i3vr
         public event OnControllerUpdateEvent OnControllerUpdate;
         public delegate void OnHeadsetRecenter();
         public event OnHeadsetRecenter HeadsetRecenter;
+        public event Action OnPostControllerInputUpdated;
         /// Returns the arm model instance associated with the controller.
         public I3vrArmModel ArmModel
         {
@@ -190,6 +193,14 @@ namespace i3vr
             get
             {
                 return instance != null ? instance.controllerState.touchPos : Vector2.zero;
+            }
+        }
+
+        public Vector2 TouchPosCentered
+        {
+            get
+            {
+                return instance != null ? instance.touchPosCentered : Vector2.zero;
             }
         }
 
@@ -441,6 +452,24 @@ namespace i3vr
             StopCoroutine(controllerUpdate);
         }
 
+        private void UpdateTouchPosCentered()
+        {
+            if(instance == null)
+            {
+                return;
+            }
+
+            touchPosCentered.x = (instance.controllerState.touchPos.x - 0.5f) * 2.0f;
+            touchPosCentered.y = -(instance.controllerState.touchPos.y - 0.5f) * 2.0f;
+
+            float magnitude = touchPosCentered.magnitude;
+            if(magnitude > 1)
+            {
+                touchPosCentered.x /= magnitude;
+                touchPosCentered.y /= magnitude;
+            }
+        }
+
         IEnumerator EndOfFrame()
         {
             while (true)
@@ -450,25 +479,34 @@ namespace i3vr
                 // it gets reset.
                 yield return waitForEndOfFrame;
                 UpdateController();
-                if (OnControllerUpdate != null)
+
+                if(OnControllerUpdate != null)
                 {
                     OnControllerUpdate();
                 }
 
-                if (ConnectionState == I3vrConnectionState.Connected)
+                UpdateTouchPosCentered();
+
+                if(OnPostControllerInputUpdated!=null)
                 {
-                    for (int i = 0; i < transform.childCount; i++)
+                    OnPostControllerInputUpdated();
+                }
+
+                if(ConnectionState == I3vrConnectionState.Connected)
+                {
+                    for(int i = 0;i < transform.childCount;i++)
                     {
-                        if (!transform.GetChild(i).gameObject.activeSelf)
+                        if(!transform.GetChild(i).gameObject.activeSelf)
                         {
                             transform.GetChild(i).gameObject.SetActive(true);
                         }
                     }
                 }
-                else {
-                    for (int i = 0; i < transform.childCount; i++)
+                else
+                {
+                    for(int i = 0;i < transform.childCount;i++)
                     {
-                        if (transform.GetChild(i).gameObject.activeSelf)
+                        if(transform.GetChild(i).gameObject.activeSelf)
                         {
                             transform.GetChild(i).gameObject.SetActive(false);
                         }
