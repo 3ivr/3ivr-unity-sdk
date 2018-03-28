@@ -94,17 +94,17 @@ namespace i3vr
                     outState.apiStatus = I3vrControllerGetApiStatus();
 
                     rawOri = I3vrControllerOrientation();
-                    rawOriQua.Set(-rawOri[1], rawOri[2], -rawOri[0], rawOri[3]);
-                    pose3d.Set(Vector3.zero, rawOriQua * Quaternion.Euler(Vector3.forward * -180));
+                    rawOriQua.Set(rawOri[0], rawOri[1], rawOri[2], rawOri[3]);
+                    pose3d.Set(Vector3.zero, rawOriQua);
                     pose3d.SetRightHanded(pose3d.Matrix);
                     HandleOrientationEvent(outState);
 
                     rawAccel = I3vrControllerAccel();
-                    rawAccelV3.Set(-rawAccel[1], rawAccel[2], -rawAccel[0]);
+                    rawAccelV3.Set(rawAccel[0], rawAccel[1], -rawAccel[2]);
                     outState.accel = rawAccelV3;
 
                     rawGyro = I3vrControllerGyro();
-                    rawGyrolV3.Set(-rawGyro[1], rawGyro[2], -rawGyro[0]);
+                    rawGyrolV3.Set(-rawGyro[0], -rawGyro[1], rawGyro[2]);
                     outState.gyro = rawGyrolV3;
 
                     touchPos = I3vrControllerTouchPos();

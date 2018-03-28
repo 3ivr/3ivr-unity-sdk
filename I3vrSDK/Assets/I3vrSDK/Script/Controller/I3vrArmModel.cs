@@ -277,7 +277,6 @@ public class I3vrArmModel : MonoBehaviour
     {
         // Get the orientation-adjusted acceleration.
         Vector3 accel = I3vrController.Orientation * I3vrController.Accel;
-        accel *= GRAVITY_FORCE;
 
         // Very slowly calibrate gravity force out of acceleration.
         zeroAccel = zeroAccel * GRAVITY_CALIB_STRENGTH + accel * (1.0f - GRAVITY_CALIB_STRENGTH);
